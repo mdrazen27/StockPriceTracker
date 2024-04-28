@@ -32,6 +32,48 @@ class StockController extends Controller
         return new JsonResponse($stock);
     }
 
+    public function getStockPriceDifference(Request $request): JsonResponse
+    {
+        $request->validate([
+            'dateFrom' => 'required|date|date_format:Y-m-d H:i:s',
+            'dateTo' => 'required|date|date_format:Y-m-d H:i:s',
+            'stocks' => 'required|string',
+        ]);
+        $stocks = Stock::whereIn('stocks.name', explode(',', $request->stocks))
+            ->join('stock_prices', 'stocks.id', '=', 'stock_prices.stock_id')
+            ->where(function ($query) use ($request) {
+                $query->where('stock_prices.time', '=', $request->dateFrom)
+                    ->orWhere('stock_prices.time', '=', $request->dateTo);
+            })
+            ->orderByDesc('stock_prices.time')
+            ->get();
+        if (!$stocks->count()) {
+            return new JsonResponse(['message' => 'No data for selected date times']);
+        }
+        $stocksAsArray = [];
+        foreach ($stocks as $stock) {
+            if (isset($stocksAsArray[$stock->name])) {
+                $stocksAsArray[$stock->name]['start_price'] = $stock->high;
+                try {
+                    // in case of bankruptcy stock value can drop to 0
+                    $difference = ($stocksAsArray[$stock->name]['end_price'] - $stock->high) / $stock->high;
+                } catch (\DivisionByZeroError) {
+                    $difference = 0;
+                }
+                $stocksAsArray[$stock->name]['difference'] = number_format($difference, 7);
+            } else {
+                $stocksAsArray[$stock->name] = [
+                    'name' => $stock->name,
+                    'symbol' => $stock->symbol,
+                    'description' => $stock->description,
+                    'end_price' => $stock->high,
+                    'difference' => 'Unknown'
+                ];
+            }
+        }
+        return new JsonResponse(array_values($stocksAsArray));
+    }
+
     public function index(): JsonResponse
     {
         return new JsonResponse(Stock::all());
