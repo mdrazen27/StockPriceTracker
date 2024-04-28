@@ -15,6 +15,7 @@ ALPHA_VANTAGE_API_KEY in .env
 Commands to run
 
 ```
+composer install
 php artisan key:generate
 php artisan migrate
 php artisan db:seed
