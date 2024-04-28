@@ -11,16 +11,21 @@ class AlphaVantageApi
 
     public function getStockPrices(int $stockId, string $symbol, int $interval = 1, string $outputsize = 'compact', ?string $month = null): array|null
     {
-        $response = Http::get(self::BASE_URL,
-            [
-                'function' => 'TIME_SERIES_INTRADAY',
-                'apikey' => env('ALPHA_VANTAGE_API_KEY'),
-                'interval' => $interval,
-                'symbol' => $symbol,
-                'outputsize' => $outputsize,
-                'month' => $month,
-            ]
-        );
+        try{
+            $response = Http::get(self::BASE_URL,
+                [
+                    'function' => 'TIME_SERIES_INTRADAY',
+                    'apikey' => env('ALPHA_VANTAGE_API_KEY'),
+                    'interval' => $interval,
+                    'symbol' => $symbol,
+                    'outputsize' => $outputsize,
+                    'month' => $month,
+                ]
+            );
+        } catch (\Error|\Exception $e){
+            Log::error($e->getMessage(), ['Trying to fetch stock prices from Alpha Vantage API']);
+            return null;
+        }
 
         $status = $response->status();
         if ($status === 200) {
