@@ -5,4 +5,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/stocks-latest-price', [StockController::class, 'getStocksLatestPrice']);
 Route::get('/stock-latest-price/{name}', [StockController::class, 'getStockLatestPrice']);
+Route::apiResource('/stocks', StockController::class);
 

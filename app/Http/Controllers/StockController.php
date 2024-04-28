@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreStockRequest;
+use App\Http\Requests\UpdateStockRequest;
 use App\Models\Stock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,5 +30,33 @@ class StockController extends Controller
                 ->first();
         }
         return new JsonResponse($stock);
+    }
+
+    public function index(): JsonResponse
+    {
+        return new JsonResponse(Stock::all());
+    }
+
+    public function store(StoreStockRequest $request): JsonResponse
+    {
+        $stock = Stock::create($request->validated());
+        return new JsonResponse($stock);
+    }
+
+    public function show(Stock $stock): JsonResponse
+    {
+        return new JsonResponse($stock);
+    }
+
+    public function update(UpdateStockRequest $request, Stock $stock): JsonResponse
+    {
+        $stock->update($request->validated());
+        return new JsonResponse($stock->refresh());
+    }
+
+    public function destroy(Stock $stock): JsonResponse
+    {
+        $stock->delete();
+        return new JsonResponse(status: 204);
     }
 }
