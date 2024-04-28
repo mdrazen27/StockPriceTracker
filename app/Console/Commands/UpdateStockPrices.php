@@ -50,7 +50,9 @@ class UpdateStockPrices extends Command
     private function cacheLatestPrices($stock, $prices): void
     {
         $dataToCache = $stock->toArray();
-        $dataToCache['price'] = $prices;
+        // adapted structure so it matches results when they are fetched from mysql
+        $dataToCache['latest_price'] = $prices;
+        $dataToCache['stock_id'] = $stock->id;
         Cache::set($stock['name'], $dataToCache, 60);
     }
 }
