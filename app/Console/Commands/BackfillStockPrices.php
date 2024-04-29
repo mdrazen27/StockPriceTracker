@@ -32,6 +32,7 @@ class BackfillStockPrices extends Command
     {
         $date = $this->argument('date');
         $name = $this->argument('name');
+        $this->info("Backfilling $name stock prices for $date");
         if (!Carbon::canBeCreatedFromFormat($date, 'Y-m')) {
             $this->error('Invalid date format. Date must be of format Y-m');
             exit();
