@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\AlphaVantageApi;
+use App\Models\Stock;
+use App\Models\StockPrice;
+use Carbon\Carbon;
+use Illuminate\Console\Command;
+
+class BackfillStockPrices extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'backfill-stock-prices {date} {name}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command for backfilling stock prices for specific month, required parameters are date and
+                              stock name';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
+    {
+        $date = $this->argument('date');
+        $name = $this->argument('name');
+        if (!Carbon::canBeCreatedFromFormat($date, 'Y-m')) {
+            $this->error('Invalid date format. Date must be of format Y-m');
+            exit();
+        }
+        $stock = Stock::where('name', $name)->first();
+        if (!$stock) {
+            $this->error('Stock name not found, check spelling');
+            exit();
+        }
+
+        $alphaVantageApi = new AlphaVantageApi();
+        $apiResponse = $alphaVantageApi->getStockPrices($stock->id, $stock->symbol, outputsize: 'full', month: $date);
+        if ($apiResponse) {
+            foreach (array_chunk($apiResponse, 500) as $chunk) {
+                StockPrice::insertOrIgnore($chunk);
+            }
+        }
+        echo "Done\n";
+    }
+}
