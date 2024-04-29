@@ -24,4 +24,10 @@ class Stock extends Model
         // latestOfMany cant be used because of the composite primary key
         return $this->hasOne(StockPrice::class)->latest('time')->limit(1);
     }
+
+    public function delete(): void
+    {
+        $this->stockPrices()->delete();
+        parent::delete();
+    }
 }
