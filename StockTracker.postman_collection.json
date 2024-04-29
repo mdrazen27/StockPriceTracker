@@ -1,0 +1,272 @@
+{
+	"info": {
+		"_postman_id": "d54ed6ac-3ed3-4ccb-99e8-4a9a866bf984",
+		"name": "StockTracker",
+		"description": "Collection for stock tracker endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20126912"
+	},
+	"item": [
+		{
+			"name": "Stock CRUD",
+			"item": [
+				{
+					"name": "Get all Stocks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/api/stocks",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"stocks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Stock",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8000/api/stocks/1",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"stocks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Stock",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "NASDAQ",
+									"type": "text"
+								},
+								{
+									"key": "symbol",
+									"value": "NDAQ",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "New stock added for monitoring",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:8000/api/stocks",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"stocks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Stock",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "META",
+									"type": "text"
+								},
+								{
+									"key": "symbol",
+									"value": "META",
+									"type": "text"
+								},
+								{
+									"key": "_method",
+									"value": "PUT",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Test description",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:8000/api/stocks/1",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"stocks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete stock",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "_method",
+									"value": "DELETE",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "localhost:8000/api/stocks/6",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"stocks",
+								"6"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "StocksLatestPrice",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/stocks-latest-price?stocks=Microsoft,Nvidia",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"stocks-latest-price"
+					],
+					"query": [
+						{
+							"key": "stocks",
+							"value": "Microsoft,Nvidia",
+							"description": "Optional parameter, if not present returns all. It's used for filtering, values should be separated with comma without spaces"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SpecificStockLatestPrice",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/stock-latest-price/google",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"stock-latest-price",
+						"google"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Stocks Price Difference",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:8000/api/stocks-price-difference?dateFrom=2024-04-26 19:20:00&dateTo=2024-04-26 19:59:00&stocks=Meta,Apple,Nvidia,Google",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"stocks-price-difference"
+					],
+					"query": [
+						{
+							"key": "dateFrom",
+							"value": "2024-04-26 19:20:00"
+						},
+						{
+							"key": "dateTo",
+							"value": "2024-04-26 19:59:00"
+						},
+						{
+							"key": "stocks",
+							"value": "Meta,Apple,Nvidia,Google"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
