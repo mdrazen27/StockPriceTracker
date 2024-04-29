@@ -9,7 +9,7 @@ class AlphaVantageApi
 {
     const BASE_URL = 'https://www.alphavantage.co/query';
 
-    public function getStockPrices(int $stockId, string $symbol, int $interval = 1, string $outputsize = 'compact', ?string $month = null): array|null
+    public function getStockPrices(int $stockId, string $symbol, string $interval = '1min', string $outputsize = 'compact', ?string $month = null): array|null
     {
         if(!$month){
             $month = date('Y-m');
