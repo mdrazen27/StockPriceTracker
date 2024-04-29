@@ -35,8 +35,8 @@ class StockController extends Controller
     public function getStockPriceDifference(Request $request): JsonResponse
     {
         $request->validate([
-            'dateFrom' => 'required|date|date_format:Y-m-d H:i:s',
-            'dateTo' => 'required|date|date_format:Y-m-d H:i:s',
+            'dateFrom' => 'required|date|date_format:Y-m-d H:i:00',
+            'dateTo' => 'required|date|date_format:Y-m-d H:i:00',
             'stocks' => 'required|string',
         ]);
         $stocks = Stock::whereIn('stocks.name', explode(',', $request->stocks))
@@ -59,6 +59,8 @@ class StockController extends Controller
                     $difference = ($stocksAsArray[$stock->name]['end_price'] - $stock->high) / $stock->high;
                 } catch (\DivisionByZeroError) {
                     $difference = 0;
+                } catch (\TypeError) {
+                    $difference = 'Unknown';
                 }
                 $stocksAsArray[$stock->name]['difference'] = number_format($difference, 7);
             } else {
@@ -66,7 +68,8 @@ class StockController extends Controller
                     'name' => $stock->name,
                     'symbol' => $stock->symbol,
                     'description' => $stock->description,
-                    'end_price' => $stock->high,
+                    'end_price' => $stock->time === $request->dateTo ? $stock->high : 'Unknown',
+                    'start_price' => $stock->time === $request->dateFrom ? $stock->high : 'Unknown',
                     'difference' => 'Unknown'
                 ];
             }
