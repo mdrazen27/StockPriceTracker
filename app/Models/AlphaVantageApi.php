@@ -11,6 +11,9 @@ class AlphaVantageApi
 
     public function getStockPrices(int $stockId, string $symbol, int $interval = 1, string $outputsize = 'compact', ?string $month = null): array|null
     {
+        if(!$month){
+            $month = date('Y-m');
+        }
         try{
             $response = Http::get(self::BASE_URL,
                 [
