@@ -79,7 +79,7 @@ class Stock extends Model
                 ->where('name', $nameUpper)
                 ->first();
             if ($stock) {
-                Cache::set($nameUpper, $stock->toArray(), 60);
+                self::cacheLatestPrice($nameUpper, $stock);
             }
         }
         return $stock;
@@ -90,21 +90,32 @@ class Stock extends Model
         $stocks = self::with('latestPrice');
         if ($names) {
             $data = [];
-            $noResultsFound = [];
+            $keysNotFound = [];
             $stockNames = explode(',', $names);
             foreach ($stockNames as $stockName) {
                 $dataFromCache = Cache::get(strtoupper($stockName));
                 if ($dataFromCache) {
                     $data[] = $dataFromCache;
                 } else {
-                    $noResultsFound[] = $stockName;
+                    $keysNotFound[] = $stockName;
                 }
             }
-            //instead of caching one by one retrieves rest in one query to save time on database connection
-            $stocks->whereIn('name', $noResultsFound);
-            array_push($data, ...$stocks->get());
+            //instead of caching one by one retrieves rest in one query to save time on database connection then caches results
+            $stocks->whereIn('name', $keysNotFound);
+            $stocks = $stocks->get();
+            if ($stocks) {
+                foreach ($stocks as $stock) {
+                    self::cacheLatestPrice($stock->name, $stock);
+                }
+                array_push($data, ...$stocks);
+            }
             return $data;
         }
         return $stocks->get();
+    }
+
+    public static function cacheLatestPrice($name, $value): void
+    {
+        Cache::set(strtoupper($name), $value->toArray(), 60);
     }
 }
