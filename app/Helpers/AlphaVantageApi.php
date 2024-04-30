@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Helpers;
 
+use App\Models\Stock;
+use App\Models\StockPrice;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -9,12 +11,12 @@ class AlphaVantageApi
 {
     const BASE_URL = 'https://www.alphavantage.co/query';
 
-    public function getStockPrices(int $stockId, string $symbol, string $interval = '1min', string $outputsize = 'compact', ?string $month = null): array|null
+    public function syncStockPrices(Stock $stock, string $symbol, string $interval = '1min', string $outputsize = 'compact', ?string $month = null, bool $cacheResult = true): void
     {
-        if(!$month){
+        if (!$month) {
             $month = date('Y-m');
         }
-        try{
+        try {
             $response = Http::get(self::BASE_URL,
                 [
                     'function' => 'TIME_SERIES_INTRADAY',
@@ -25,9 +27,9 @@ class AlphaVantageApi
                     'month' => $month,
                 ]
             );
-        } catch (\Error|\Exception $e){
+        } catch (\Error|\Exception $e) {
             Log::error($e->getMessage(), ['Trying to fetch stock prices from Alpha Vantage API']);
-            return null;
+            return;
         }
 
         $status = $response->status();
@@ -38,18 +40,25 @@ class AlphaVantageApi
                 $data = $dataObject->{"Time Series ($interval)"} ?? null;
                 $parsedValues = [];
                 foreach ($data as $dataKey => $dataValues) {
-                    $currentRow = ['time' => $dataKey, 'stock_id' => $stockId];
+                    $currentRow = ['time' => $dataKey, 'stock_id' => $stock->id];
                     foreach ($dataValues as $valueKey => $value) {
                         // response returns open value as '1. open'...
                         $currentRow[explode(' ', $valueKey)[1]] = $value;
                     }
                     $parsedValues[] = $currentRow;
                 }
-                return $parsedValues;
+                if (!empty($parsedValues)) {
+                    if ($cacheResult) {
+                        Stock::cacheStockLatestPrices($stock, $parsedValues[0]);
+                    }
+                    foreach (array_chunk($parsedValues, 500) as $chunk) {
+                        StockPrice::insertOrIgnore($chunk);
+                    }
+                }
+                return;
             }
         }
         $this->logError($response);
-        return null;
     }
 
     private function logError($response): void

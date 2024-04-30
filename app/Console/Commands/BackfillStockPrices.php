@@ -2,9 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\AlphaVantageApi;
+use App\Helpers\AlphaVantageApi;
 use App\Models\Stock;
-use App\Models\StockPrice;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -28,7 +27,7 @@ class BackfillStockPrices extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
         $date = $this->argument('date');
         $name = $this->argument('name');
@@ -44,12 +43,7 @@ class BackfillStockPrices extends Command
         }
 
         $alphaVantageApi = new AlphaVantageApi();
-        $apiResponse = $alphaVantageApi->getStockPrices($stock->id, $stock->symbol, outputsize: 'full', month: $date);
-        if ($apiResponse) {
-            foreach (array_chunk($apiResponse, 500) as $chunk) {
-                StockPrice::insertOrIgnore($chunk);
-            }
-        }
+        $alphaVantageApi->syncStockPrices($stock, $stock->symbol, outputsize: 'full', month: $date, cacheResult: false);
         echo "Done\n";
     }
 }

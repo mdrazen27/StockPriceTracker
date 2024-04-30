@@ -7,29 +7,17 @@ use App\Http\Requests\UpdateStockRequest;
 use App\Models\Stock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class StockController extends Controller
 {
     public function getStocksLatestPrice(Request $request): JsonResponse
     {
-        $stocks = Stock::with('latestPrice');
-        if ($request->stocks) {
-            $stocks->whereIn('name', explode(',', $request->stocks));
-        }
-
-        return new JsonResponse($stocks->get());
+        return new JsonResponse(Stock::getStocksLatestPrices($request->stocks));
     }
 
     public function getStockLatestPrice(string $name): JsonResponse
     {
-        $stock = Cache::get($name);
-        if (!$stock) {
-            $stock = Stock::with('latestPrice')
-                ->where('name', $name)
-                ->first();
-        }
-        return new JsonResponse($stock);
+        return new JsonResponse(Stock::getOrCacheLatestPrice($name));
     }
 
     public function getStockPriceDifference(Request $request): JsonResponse
@@ -50,31 +38,9 @@ class StockController extends Controller
         if (!$stocks->count()) {
             return new JsonResponse(['message' => 'No data for selected date times']);
         }
-        $stocksAsArray = [];
-        foreach ($stocks as $stock) {
-            if (isset($stocksAsArray[$stock->name])) {
-                $stocksAsArray[$stock->name]['start_price'] = $stock->high;
-                try {
-                    // in case of bankruptcy stock value can drop to 0
-                    $difference = ($stocksAsArray[$stock->name]['end_price'] - $stock->high) / $stock->high;
-                } catch (\DivisionByZeroError) {
-                    $difference = 0;
-                } catch (\TypeError) {
-                    $difference = 'Unknown';
-                }
-                $stocksAsArray[$stock->name]['difference'] = number_format($difference, 7);
-            } else {
-                $stocksAsArray[$stock->name] = [
-                    'name' => $stock->name,
-                    'symbol' => $stock->symbol,
-                    'description' => $stock->description,
-                    'end_price' => $stock->time === $request->dateTo ? $stock->high : 'Unknown',
-                    'start_price' => $stock->time === $request->dateFrom ? $stock->high : 'Unknown',
-                    'difference' => 'Unknown'
-                ];
-            }
-        }
-        return new JsonResponse(array_values($stocksAsArray));
+        $priceDifferences = Stock::calculatePriceDifference($stocks, $request->dateFrom, $request->dateTo);
+
+        return new JsonResponse($priceDifferences);
     }
 
     public function index(): JsonResponse

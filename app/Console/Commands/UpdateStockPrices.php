@@ -2,11 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Models\AlphaVantageApi;
+use App\Helpers\AlphaVantageApi;
 use App\Models\Stock;
-use App\Models\StockPrice;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
 
 class UpdateStockPrices extends Command
 {
@@ -32,27 +30,8 @@ class UpdateStockPrices extends Command
     {
         $stocks = Stock::all();
         $alphaVantageApi = new AlphaVantageApi();
-        $pricesFromApi = [];
         foreach ($stocks as $stock) {
-            $apiResponse = $alphaVantageApi->getStockPrices($stock->id, $stock->symbol);
-            if ($apiResponse) {
-                $this->cacheLatestPrices($stock, $apiResponse[0]);
-                array_push($pricesFromApi, ...$apiResponse);
-            }
+            $alphaVantageApi->syncStockPrices($stock, $stock->symbol);
         }
-        if ($pricesFromApi) {
-            foreach (array_chunk($pricesFromApi, 500) as $chunk) {
-                StockPrice::insertOrIgnore($chunk);
-            }
-        }
-    }
-
-    private function cacheLatestPrices($stock, $prices): void
-    {
-        $dataToCache = $stock->toArray();
-        // adapted structure so it matches results when they are fetched from mysql
-        $dataToCache['latest_price'] = $prices;
-        $dataToCache['stock_id'] = $stock->id;
-        Cache::set($stock['name'], $dataToCache, 60);
     }
 }
