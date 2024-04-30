@@ -43,7 +43,7 @@ class BackfillStockPrices extends Command
         }
 
         $alphaVantageApi = new AlphaVantageApi();
-        $alphaVantageApi->syncStockPrices($stock, $stock->symbol, outputsize: 'full', month: $date, cacheResult: false);
+        $alphaVantageApi->syncStockPrices($stock, $stock->symbol, outputsize: 'full', month: $date);
         echo "Done\n";
     }
 }

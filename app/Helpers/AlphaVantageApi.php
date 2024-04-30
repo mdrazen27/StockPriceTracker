@@ -11,7 +11,7 @@ class AlphaVantageApi
 {
     const BASE_URL = 'https://www.alphavantage.co/query';
 
-    public function syncStockPrices(Stock $stock, string $symbol, string $interval = '1min', string $outputsize = 'compact', ?string $month = null, bool $cacheResult = true): void
+    public function syncStockPrices(Stock $stock, string $symbol, string $interval = '1min', string $outputsize = 'compact', ?string $month = null): void
     {
         if (!$month) {
             $month = date('Y-m');
@@ -48,9 +48,6 @@ class AlphaVantageApi
                     $parsedValues[] = $currentRow;
                 }
                 if (!empty($parsedValues)) {
-                    if ($cacheResult) {
-                        Stock::cacheStockLatestPrices($stock, $parsedValues[0]);
-                    }
                     foreach (array_chunk($parsedValues, 500) as $chunk) {
                         StockPrice::insertOrIgnore($chunk);
                     }
